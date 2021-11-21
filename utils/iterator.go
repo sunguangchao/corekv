@@ -12,9 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-package iterator
-
-import "github.com/hardcore-os/corekv/utils/codec"
+package utils
 
 // 迭代器
 type Iterator interface {
@@ -26,7 +24,7 @@ type Iterator interface {
 	Seek(key []byte)
 }
 type Item interface {
-	Entry() *codec.Entry
+	Entry() *Entry
 }
 type Options struct {
 	Prefix []byte

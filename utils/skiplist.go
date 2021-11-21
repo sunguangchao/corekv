@@ -6,7 +6,6 @@ import (
 	"sync"
 	"time"
 
-	"github.com/hardcore-os/corekv/iterator"
 	"github.com/hardcore-os/corekv/utils/codec"
 )
 
@@ -31,7 +30,7 @@ type SkipListIterator struct {
 }
 
 // NewIterator 跳表迭代器
-func (sl *SkipList) NewIterator(opt *iterator.Options) iterator.Iterator {
+func (sl *SkipList) NewIterator(opt *Options) Iterator {
 	iter := &SkipListIterator{
 		it: sl.header,
 		sl: sl,
@@ -62,7 +61,7 @@ func (iter *SkipListIterator) Valid() bool {
 func (iter *SkipListIterator) Rewind() {
 	iter.it = iter.sl.header.levels[0]
 }
-func (iter *SkipListIterator) Item() iterator.Item {
+func (iter *SkipListIterator) Item() Item {
 	return iter.it
 }
 func (iter *SkipListIterator) Close() error {
@@ -280,7 +279,7 @@ type SkipListIter struct {
 	lock   sync.RWMutex
 }
 
-func (list *SkipList) NewSkipListIterator() iterator.Iterator {
+func (list *SkipList) NewSkipListIterator() Iterator {
 	return &SkipListIter{elem: list.header.levels[0], header: list.header}
 }
 
@@ -297,7 +296,7 @@ func (iter *SkipListIter) Valid() bool {
 func (iter *SkipListIter) Rewind() {
 	iter.elem = iter.header.levels[0]
 }
-func (iter *SkipListIter) Item() iterator.Item {
+func (iter *SkipListIter) Item() Item {
 	return iter.elem
 }
 func (iter *SkipListIter) Close() error {

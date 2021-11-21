@@ -1,7 +1,6 @@
 package corekv
 
 import (
-	"github.com/hardcore-os/corekv/iterator"
 	"github.com/hardcore-os/corekv/lsm"
 	"github.com/hardcore-os/corekv/utils"
 	"github.com/hardcore-os/corekv/utils/codec"
@@ -14,7 +13,7 @@ type (
 		Set(data *codec.Entry) error
 		Get(key []byte) (*codec.Entry, error)
 		Del(key []byte) error
-		NewIterator(opt *iterator.Options) iterator.Iterator
+		NewIterator(opt *utils.Options) utils.Iterator
 		Info() *Stats
 		Close() error
 	}

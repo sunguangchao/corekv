@@ -136,7 +136,7 @@ func (ss *SSTable) read(off, sz int) ([]byte, error) {
 		}
 		return ss.f.Data[off : off+sz], nil
 	}
-
+	//兜底
 	res := make([]byte, sz)
 	_, err := ss.f.Fd.ReadAt(res, int64(off))
 	return res, err

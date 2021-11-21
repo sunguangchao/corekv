@@ -120,6 +120,8 @@ func (lm *levelManager) Get(key []byte) (*codec.Entry, error) {
 	}
 	return entry, utils.ErrKeyNotFound
 }
+
+// 其实入口
 func newLevelManager(opt *Options) *levelManager {
 	lm := &levelManager{}
 	lm.opt = opt
@@ -127,6 +129,7 @@ func newLevelManager(opt *Options) *levelManager {
 	if err := lm.loadManifest(); err != nil {
 		panic(err)
 	}
+	// 讲sst文件的数据初始化好，索引导入内存
 	lm.build()
 	return lm
 }

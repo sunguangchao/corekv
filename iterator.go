@@ -15,12 +15,12 @@
 package corekv
 
 import (
-	"github.com/hardcore-os/corekv/iterator"
+	"github.com/hardcore-os/corekv/utils"
 	"github.com/hardcore-os/corekv/utils/codec"
 )
 
 type DBIterator struct {
-	iters []iterator.Iterator
+	iters []utils.Iterator
 }
 type Item struct {
 	e *codec.Entry
@@ -29,9 +29,9 @@ type Item struct {
 func (it *Item) Entry() *codec.Entry {
 	return it.e
 }
-func (db *DB) NewIterator(opt *iterator.Options) iterator.Iterator {
+func (db *DB) NewIterator(opt *utils.Options) utils.Iterator {
 	dbIter := &DBIterator{}
-	dbIter.iters = make([]iterator.Iterator, 0)
+	dbIter.iters = make([]utils.Iterator, 0)
 	dbIter.iters = append(dbIter.iters, db.lsm.NewIterator(opt))
 	return dbIter
 }
@@ -45,7 +45,7 @@ func (iter *DBIterator) Valid() bool {
 func (iter *DBIterator) Rewind() {
 	iter.iters[0].Rewind()
 }
-func (iter *DBIterator) Item() iterator.Item {
+func (iter *DBIterator) Item() utils.Item {
 	return iter.iters[0].Item()
 }
 func (iter *DBIterator) Close() error {

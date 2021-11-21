@@ -1,10 +1,10 @@
 package corekv
 
 import (
+	"github.com/hardcore-os/corekv/utils"
 	"testing"
 	"time"
 
-	"github.com/hardcore-os/corekv/iterator"
 	"github.com/hardcore-os/corekv/utils/codec"
 )
 
@@ -24,7 +24,7 @@ func TestAPI(t *testing.T) {
 		t.Logf("db.Get key=%s, value=%s, expiresAt=%d", entry.Key, entry.Value, entry.ExpiresAt)
 	}
 	// 迭代器
-	iter := db.NewIterator(&iterator.Options{
+	iter := db.NewIterator(&utils.Options{
 		Prefix: []byte("hello"),
 		IsAsc:  false,
 	})

@@ -42,6 +42,7 @@ func OpenMmapFileUsing(fd *os.File, sz int, writable bool) (*MmapFile, error) {
 
 	var rerr error
 	fileSize := fi.Size()
+	//如果是一个空的文件，需要截断并填充至和内存大小
 	if sz > 0 && fileSize == 0 {
 		// If file is empty, truncate it to sz.
 		if err := fd.Truncate(int64(sz)); err != nil {
@@ -55,7 +56,7 @@ func OpenMmapFileUsing(fd *os.File, sz int, writable bool) (*MmapFile, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "while mmapping %s with size: %d", fd.Name(), fileSize)
 	}
-
+	// todo 这里说明没有刷盘，需要异步进行刷盘
 	if fileSize == 0 {
 		dir, _ := filepath.Split(filename)
 		go SyncDir(dir)
@@ -80,6 +81,7 @@ func OpenMmapFile(filename string, flag int, maxSz int) (*MmapFile, error) {
 	if flag == os.O_RDONLY {
 		writable = false
 	}
+	//普通文件和内存空间关联在一起
 	return OpenMmapFileUsing(fd, maxSz, writable)
 }
 
