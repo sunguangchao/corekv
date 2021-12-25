@@ -8,7 +8,7 @@ import (
 type Options struct {
 }
 
-// VLog
+// VLog1
 type VLog struct {
 	closer *utils.Closer
 }
