@@ -1,4 +1,4 @@
-// Copyright 2021 logicrec Project Authors
+// Copyright 2021 hardcore-os Project Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License")
 // you may not use this file except in compliance with the License.
@@ -19,20 +19,19 @@ import "sync"
 // Closer _用于资源回收的信号控制
 type Closer struct {
 	waiting     sync.WaitGroup
-	closeSignal chan struct{}
+	CloseSignal chan struct{}
 }
 
 // NewCloser _
-func NewCloser(i int) *Closer {
+func NewCloser() *Closer {
 	closer := &Closer{waiting: sync.WaitGroup{}}
-	closer.waiting.Add(i)
-	closer.closeSignal = make(chan struct{})
+	closer.CloseSignal = make(chan struct{})
 	return closer
 }
 
 // Close 上游通知下游协程进行资源回收，并等待协程通知回收完毕
 func (c *Closer) Close() {
-	close(c.closeSignal)
+	close(c.CloseSignal)
 	c.waiting.Wait()
 }
 
@@ -41,7 +40,7 @@ func (c *Closer) Done() {
 	c.waiting.Done()
 }
 
-// Wait 返回关闭信号
-func (c *Closer) Wait() chan struct{} {
-	return c.closeSignal
+// Add 添加wait 计数
+func (c *Closer) Add(n int) {
+	c.waiting.Add(n)
 }

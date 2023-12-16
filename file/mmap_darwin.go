@@ -1,3 +1,6 @@
+//go:build darwin
+// +build darwin
+
 // Copyright 2021 hardcore-os Project Authors
 //
 // Licensed under the Apache License, Version 2.0 (the "License")
@@ -21,7 +24,6 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/hardcore-os/corekv/utils"
 	"github.com/hardcore-os/corekv/utils/mmap"
 	"github.com/pkg/errors"
 )
@@ -151,6 +153,32 @@ func (m *MmapFile) AllocateSlice(sz, offset int) ([]byte, int, error) {
 	return m.Data[start : start+sz], start + sz, nil
 }
 
+const oneGB = 1 << 30
+
+// AppendBuffer 向内存中追加一个buffer，如果空间不足则重新映射，扩大空间
+func (m *MmapFile) AppendBuffer(offset uint32, buf []byte) error {
+	size := len(m.Data)
+	needSize := len(buf)
+	end := int(offset) + needSize
+	if end > size {
+		growBy := size
+		if growBy > oneGB {
+			growBy = oneGB
+		}
+		if growBy < needSize {
+			growBy = needSize
+		}
+		if err := m.Truncature(int64(end)); err != nil {
+			return err
+		}
+	}
+	dLen := copy(m.Data[offset:end], buf)
+	if dLen != needSize {
+		return errors.Errorf("dLen != needSize AppendBuffer failed")
+	}
+	return nil
+}
+
 func (m *MmapFile) Sync() error {
 	if m == nil {
 		return nil
@@ -159,8 +187,6 @@ func (m *MmapFile) Sync() error {
 }
 
 func (m *MmapFile) Delete() error {
-	// Badger can set the m.Data directly, without setting any Fd. In that case, this should be a
-	// NOOP.
 	if m.Fd == nil {
 		return nil
 	}
@@ -208,17 +234,18 @@ func SyncDir(dir string) error {
 
 // Truncature 兼容接口
 func (m *MmapFile) Truncature(maxSz int64) error {
-	var err error
-	if maxSz >= 0 {
-		if err = m.Fd.Truncate(maxSz); err != nil {
-			return fmt.Errorf("while truncate file: %s, error: %v\n", m.Fd.Name(), err)
-		}
-		if maxSz > int64(len(m.Data)) {
-			m.Data, err = mmap.Mremap(m.Data, int(maxSz))
-			return utils.Err(err)
-		}
+	if err := m.Sync(); err != nil {
+		return fmt.Errorf("while sync file: %s, error: %v\n", m.Fd.Name(), err)
 	}
-	return nil
+	if err := mmap.Munmap(m.Data); err != nil {
+		return fmt.Errorf("while munmap file: %s, error: %v\n", m.Fd.Name(), err)
+	}
+	if err := m.Fd.Truncate(maxSz); err != nil {
+		return fmt.Errorf("while truncate file: %s, error: %v\n", m.Fd.Name(), err)
+	}
+	var err error
+	m.Data, err = mmap.Mmap(m.Fd, true, maxSz) // Mmap up to max size.
+	return err
 }
 
 // ReName 兼容接口

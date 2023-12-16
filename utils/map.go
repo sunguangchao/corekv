@@ -43,6 +43,12 @@ func (c *CoreMap) Set(key, value interface{}) {
 	c.m.Store(hashKey, value)
 }
 
+// Del _
+func (c *CoreMap) Del(key interface{}) {
+	hashKey := c.keyToHash(key)
+	c.m.Delete(hashKey)
+}
+
 // Range _
 func (c *CoreMap) Range(f func(key, value interface{}) bool) {
 	c.m.Range(f)

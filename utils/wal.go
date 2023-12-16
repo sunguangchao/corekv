@@ -28,6 +28,7 @@ type LogEntry func(e *Entry, vp *ValuePtr) error
 type WalHeader struct {
 	KeyLen    uint32
 	ValueLen  uint32
+	Meta      byte
 	ExpiresAt uint64
 }
 
@@ -37,22 +38,31 @@ func (h WalHeader) Encode(out []byte) int {
 	index := 0
 	index = binary.PutUvarint(out[index:], uint64(h.KeyLen))
 	index += binary.PutUvarint(out[index:], uint64(h.ValueLen))
+	index += binary.PutUvarint(out[index:], uint64(h.Meta))
 	index += binary.PutUvarint(out[index:], h.ExpiresAt)
 	return index
 }
 
 func (h *WalHeader) Decode(reader *HashReader) (int, error) {
 	var err error
+
 	klen, err := binary.ReadUvarint(reader)
 	if err != nil {
 		return 0, err
 	}
 	h.KeyLen = uint32(klen)
+
 	vlen, err := binary.ReadUvarint(reader)
 	if err != nil {
 		return 0, err
 	}
 	h.ValueLen = uint32(vlen)
+
+	meta, err := binary.ReadUvarint(reader)
+	if err != nil {
+		return 0, err
+	}
+	h.Meta = byte(meta)
 	h.ExpiresAt, err = binary.ReadUvarint(reader)
 	if err != nil {
 		return 0, err
@@ -85,6 +95,12 @@ func WalCodec(buf *bytes.Buffer, e *Entry) int {
 	Panic2(buf.Write(crcBuf[:]))
 	// return encoded length.
 	return len(headerEnc[:sz]) + len(e.Key) + len(e.Value) + len(crcBuf)
+}
+
+// EstimateWalCodecSize 预估当前kv 写入wal文件占用的空间大小
+func EstimateWalCodecSize(e *Entry) int {
+	return len(e.Key) + len(e.Value) + 8 /* ExpiresAt uint64 */ +
+		crc32.Size + maxHeaderSize
 }
 
 type HashReader struct {
